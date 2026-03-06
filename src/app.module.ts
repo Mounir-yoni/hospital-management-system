@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserModule } from './user/user.module';
+import { RoleModule } from './role/role.module';
+import { DoctorModule } from './doctor/doctor.module';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: 'config.env' });
 @Module({
@@ -14,7 +17,7 @@ dotenv.config({ path: 'config.env' });
     database: process.env.DB_NAME,
     autoLoadEntities: true,
     synchronize: true, // ⚠️ فقط في التطوير
-  }),],
+  }), UserModule, RoleModule, DoctorModule,],
   controllers: [AppController],
   providers: [AppService],
 })
