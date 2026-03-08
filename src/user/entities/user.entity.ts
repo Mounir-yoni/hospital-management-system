@@ -2,6 +2,7 @@ import { Role } from 'src/role/entities/role.entity';
 import { Doctor } from 'src/doctor/entities/doctor.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 
+
 @Entity('users')
 export class User {
     @PrimaryGeneratedColumn()
@@ -28,4 +29,5 @@ export class User {
 
     @Column()
     updatedAt: Date;
+
 }

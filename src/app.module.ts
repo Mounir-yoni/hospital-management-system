@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { RoleModule } from './role/role.module';
 import { DoctorModule } from './doctor/doctor.module';
+import { AuthModule } from './auth/auth.module';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: 'config.env' });
 @Module({
@@ -17,7 +18,7 @@ dotenv.config({ path: 'config.env' });
     database: process.env.DB_NAME,
     autoLoadEntities: true,
     synchronize: true, // ⚠️ فقط في التطوير
-  }), UserModule, RoleModule, DoctorModule,],
+  }), UserModule, RoleModule, DoctorModule, AuthModule,],
   controllers: [AppController],
   providers: [AppService],
 })
