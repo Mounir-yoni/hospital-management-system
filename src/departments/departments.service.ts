@@ -5,7 +5,7 @@ import { Department } from './entities/department.entity';
 
 @Injectable()
 export class DepartmentsService {
-  // مصفوفة مؤقتة لتخزين البيانات بدلاً من قاعدة البيانات الحقيقية
+
   private departments: Department[] = [];
   private idCounter = 1;
 
