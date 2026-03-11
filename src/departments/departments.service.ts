@@ -61,4 +61,21 @@ export class DepartmentsService {
     // Here you would typically add the doctor to the department's list of doctors
     // For example: department.doctors.push(doctorId);
   }
+  getDoctorsInDepartment(departmentId: number) {
+    const department = this.departments.find(dep => dep.id === departmentId);
+    if (!department) {
+      throw new NotFoundException(`القسم صاحب الرقم ${departmentId} غير موجود`);
+    }
+    // Here you would typically return the list of doctors in the department
+    // For example: return department.doctors;
+  }
+  deleteDoctorFromDepartment(departmentId: number, doctorId: number) {
+    const department = this.departments.find(dep => dep.id === departmentId);
+    if (!department) {
+      throw new NotFoundException(`القسم صاحب الرقم ${departmentId} غير موجود`);
+    }
+    // Here you would typically remove the doctor from the department's list of doctors
+    // For example: department.doctors = department.doctors.filter(id => id !== doctorId);
+  }
+
 }

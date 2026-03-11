@@ -31,4 +31,16 @@ export class DepartmentsController {
   remove(@Param('id') id: string) {
     return this.departmentsService.remove(+id);
   }
+  @Get(':id/doctors')
+  getDoctorsByDepartment(@Param('id') id: string) {
+    return this.departmentsService.getDoctorsInDepartment(+id);
+  }
+  @Post(':id/add-doctor/:doctorId')
+  addDoctorToDepartment(@Param('id') id: string, @Param('doctorId') doctorId: string) {
+    return this.departmentsService.addDoctorToDepartment(+id, +doctorId);
+  }
+  @Delete(':id/remove-doctor/:doctorId')
+  removeDoctorFromDepartment(@Param('id') id: string, @Param('doctorId') doctorId: string) {
+    return this.departmentsService.deleteDoctorFromDepartment(+id, +doctorId);
+  }
 }
