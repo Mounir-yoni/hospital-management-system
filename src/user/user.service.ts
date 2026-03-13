@@ -1,67 +1,54 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { Role } from 'src/role/entities/role.entity';
-import { RoleName } from 'src/role/enums/Role.Name';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Role) private readonly roleRepository: Repository<Role>
-  ) { }
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser = await this.findByEmail(createUserDto.email);
-    if (existingUser) {
-      throw new Error('User already exists');
-    }
-    const { role, ...userData } = createUserDto;
-    const roleEntity = await this.roleRepository.findOne({ where: { name: role as RoleName } });
-    if (!roleEntity) {
-      throw new Error(`Role ${role} not found`);
-    }
+  async create(userData: any) {
+    // 💡 ملاحظة: في المشاريع الحقيقية نقوم بتشفير كلمة المرور هنا قبل حفظها
+    const newUser = this.userRepository.create(userData);
+    return await this.userRepository.save(newUser);
+  }
 
-    const user: User = this.userRepository.create({
-      ...userData,
-      role: roleEntity,
-      createdAt: new Date(),
-      updatedAt: new Date()
+  async findByEmail(email: string) {
+    return await this.userRepository.findOne({ 
+      where: { email },
+      relations: ['role'] // جلب صلاحيات المستخدم مفيد جداً وقت تسجيل الدخول
     });
-    const savedUser = await this.userRepository.save(user);
-    return savedUser;
+  }
+  
+  async findAll() {
+    // جلب كل المستخدمين مع بيانات الصلاحية (Role) الخاصة بهم
+    return await this.userRepository.find({ relations: ['role'] });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { email } });
-  }
-
-  findAll() {
-    return this.userRepository.find();
-  }
-
-  findOne(id: number) {
-    return this.userRepository.findOne({ where: { id } });
-  }
-
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const { role, ...rest } = updateUserDto;
-    const updateData: any = { ...rest };
-    if (role) {
-      const roleEntity = await this.roleRepository.findOne({ where: { name: role as RoleName } });
-      if (!roleEntity) {
-        throw new Error(`Role ${role} not found`);
-      }
-      updateData.role = roleEntity;
+  async findOne(id: number) {
+    const user = await this.userRepository.findOne({ 
+      where: { id },
+      relations: ['role'] 
+    });
+    
+    if (!user) {
+      throw new NotFoundException(`المستخدم رقم ${id} غير موجود`);
     }
-    updateData.updatedAt = new Date();
-    return this.userRepository.update(id, updateData);
+    return user;
   }
 
-  remove(id: number) {
-    return this.userRepository.delete(id);
+  async update(id: number, updateData: any) {
+    const user = await this.findOne(id);
+    Object.assign(user, updateData);
+    return await this.userRepository.save(user);
+  }
+
+  async remove(id: number) {
+    const user = await this.findOne(id);
+    // 🪄 الميزة السحرية: softRemove ستقوم بتسجيل تاريخ الحذف فقط ولن تحذف السطر فعلياً!
+    return await this.userRepository.softRemove(user);
   }
 }

@@ -1,81 +1,77 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { Department } from './entities/department.entity';
+import { Doctor } from '../doctor/entities/doctor.entity'; // لاستخدامه في ربط الأطباء
 
 @Injectable()
 export class DepartmentsService {
+  constructor(
+    @InjectRepository(Department)
+    private readonly departmentRepository: Repository<Department>,
+    
+    @InjectRepository(Doctor)
+    private readonly doctorRepository: Repository<Doctor>, // حقن جدول الأطباء
+  ) {}
 
-  private departments: Department[] = [];
-  private idCounter = 1;
-
-  create(createDepartmentDto: CreateDepartmentDto) {
-    const newDepartment: Department = {
-      id: this.idCounter++,
-      ...createDepartmentDto,
-    };
-    this.departments.push(newDepartment);
-    return newDepartment;
+  async create(createDepartmentDto: CreateDepartmentDto) {
+    const newDepartment = this.departmentRepository.create(createDepartmentDto);
+    return await this.departmentRepository.save(newDepartment);
   }
 
-  findAll() {
-    return this.departments;
+  async findAll() {
+    return await this.departmentRepository.find();
   }
 
-  findOne(id: number) {
-    const department = this.departments.find(dep => dep.id === id);
+  async findOne(id: number) {
+    const department = await this.departmentRepository.findOne({ where: { id } });
     if (!department) {
-      throw new NotFoundException(`القسم صاحب الرقم ${id} غير موجود`);
+      throw new NotFoundException(`القسم رقم ${id} غير موجود`);
     }
     return department;
   }
 
-  update(id: number, updateDepartmentDto: UpdateDepartmentDto) {
-    const index = this.departments.findIndex(dep => dep.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`القسم صاحب الرقم ${id} غير موجود`);
-    }
-    
-    this.departments[index] = {
-      ...this.departments[index],
-      ...updateDepartmentDto,
-    };
-    return this.departments[index];
+  async update(id: number, updateDepartmentDto: UpdateDepartmentDto) {
+    const department = await this.findOne(id);
+    Object.assign(department, updateDepartmentDto);
+    return await this.departmentRepository.save(department);
   }
 
-  remove(id: number) {
-    const index = this.departments.findIndex(dep => dep.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`القسم صاحب الرقم ${id} غير موجود`);
-    }
-    
-    const deletedDepartment = this.departments.splice(index, 1);
-    return deletedDepartment[0];
-  }
-  //add doctor to department
-  addDoctorToDepartment(departmentId: number, doctorId: number) {
-    const department = this.departments.find(dep => dep.id === departmentId);
-    if (!department) {
-      throw new NotFoundException(`القسم صاحب الرقم ${departmentId} غير موجود`);
-    }
-    // Here you would typically add the doctor to the department's list of doctors
-    // For example: department.doctors.push(doctorId);
-  }
-  getDoctorsInDepartment(departmentId: number) {
-    const department = this.departments.find(dep => dep.id === departmentId);
-    if (!department) {
-      throw new NotFoundException(`القسم صاحب الرقم ${departmentId} غير موجود`);
-    }
-    // Here you would typically return the list of doctors in the department
-    // For example: return department.doctors;
-  }
-  deleteDoctorFromDepartment(departmentId: number, doctorId: number) {
-    const department = this.departments.find(dep => dep.id === departmentId);
-    if (!department) {
-      throw new NotFoundException(`القسم صاحب الرقم ${departmentId} غير موجود`);
-    }
-    // Here you would typically remove the doctor from the department's list of doctors
-    // For example: department.doctors = department.doctors.filter(id => id !== doctorId);
+  async remove(id: number) {
+    const department = await this.findOne(id);
+    return await this.departmentRepository.remove(department);
   }
 
+  // --- دوال العلاقات مع الأطباء ---
+
+  async getDoctorsInDepartment(departmentId: number) {
+    const department = await this.departmentRepository.findOne({
+      where: { id: departmentId },
+      relations: ['doctors'], // جلب الأطباء المرتبطين بهذا القسم
+    });
+    if (!department) {
+      throw new NotFoundException(`القسم رقم ${departmentId} غير موجود`);
+    }
+    return department.doctors;
+  }
+
+  async addDoctorToDepartment(departmentId: number, doctorId: number) {
+    const doctor = await this.doctorRepository.findOne({ where: { id: doctorId } });
+    if (!doctor) {
+      throw new NotFoundException(`الطبيب رقم ${doctorId} غير موجود`);
+    }
+    doctor.department_id = departmentId;
+    return await this.doctorRepository.save(doctor);
+  }
+
+  async deleteDoctorFromDepartment(departmentId: number, doctorId: number) {
+    const doctor = await this.doctorRepository.findOne({ where: { id: doctorId } });
+    if (!doctor || doctor.department_id !== departmentId) {
+      throw new NotFoundException(`الطبيب غير موجود في هذا القسم`);
+    }
+    doctor.department_id = null as any; // إزالة ارتباطه بالقسم
+    return await this.doctorRepository.save(doctor);
+  }
 }
