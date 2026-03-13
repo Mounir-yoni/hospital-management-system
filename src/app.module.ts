@@ -6,19 +6,24 @@ import { UserModule } from './user/user.module';
 import { RoleModule } from './role/role.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { AuthModule } from './auth/auth.module';
+import { PatientModule } from './patient/patient.module';
+import { RadiologistModule } from './radiologist/radiologist.module';
+import { ManagerModule } from './manager/manager.module';
 import * as dotenv from 'dotenv';
+import { DepartmentsModule } from './departments/departments.module';
+
 dotenv.config({ path: 'config.env' });
 @Module({
   imports: [TypeOrmModule.forRoot({
     type: 'postgres',
-    host: 'localhost',
+    host: '127.0.0.1',
     port: 5432,
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    username: 'postgres',       // 💡 تم وضع الاسم مباشرة
+    password: 'Pfe2026',       // 💡 تم وضع كلمة المرور مباشرة
+    database: 'hospitall_db',
     autoLoadEntities: true,
-    synchronize: true, // ⚠️ فقط في التطوير
-  }), UserModule, RoleModule, DoctorModule, AuthModule,],
+    synchronize: false, // ⚠️ فقط في التطوير
+  }), UserModule, RoleModule, DoctorModule, AuthModule, PatientModule, RadiologistModule, ManagerModule,DepartmentsModule],
   controllers: [AppController],
   providers: [AppService],
 })
