@@ -1,30 +1,30 @@
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
 import { User } from "src/user/entities/user.entity";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('doctors')
 export class Doctor {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    specialization: string;
+  @Column()
+  name: string;
 
-    @Column()
-    phone: string;
+  @Column()
+  specialization: string;
 
-
-    @Column()
-    department_id: number;
-
-
-    @OneToOne(() => User, (user) => user.doctor)
-    @JoinColumn({ name: 'user_id' })
-    user: User;
+  @Column()
+  phone: string;
 
 
-    @Column({ default: new Date() })
-    createdAt: Date;
+  @Column()
+  department_id: number;
 
-    @Column({ default: new Date() })
-    updatedAt: Date;
+  @OneToOne(() => User, (user) => user.doctor)
+  user: User;
+
+  @Column()
+  createdAt: Date;
+
+  @Column()
+  updatedAt: Date;
 }

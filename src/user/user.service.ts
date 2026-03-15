@@ -1,17 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
 import { Repository, EntityManager } from 'typeorm';
+import { User } from './entities/user.entity';
 import { Role } from 'src/role/entities/role.entity';
 import { RoleName } from 'src/role/enums/Role.Name';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Role) private readonly roleRepository: Repository<Role>
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) { }
 
   async create(createUserDto: CreateUserDto, manager?: EntityManager): Promise<User> {
@@ -41,22 +41,15 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { email }, relations: ['role'] });
+    return await this.userRepository.findOne({ where: { email } });
   }
 
-  findAll() {
-    return this.userRepository.find();
-  }
-
-  findOne(id: number) {
-    return this.userRepository.findOne({ where: { id } });
+  async findAll() {
+    // جلب كل المستخدمين مع بيانات الصلاحية (Role) الخاصة بهم
+    return await this.userRepository.find({ relations: ['role'] });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new Error('User not found');
-    }
     const { role, ...rest } = updateUserDto;
     const updateData: any = { ...rest };
     if (role) {
@@ -70,8 +63,7 @@ export class UserService {
     return this.userRepository.update(id, updateData);
   }
 
-  remove(id: number, manager?: EntityManager) {
-    const userRepository = manager ? manager.getRepository(User) : this.userRepository;
-    return userRepository.delete(id);
+  remove(id: number) {
+    return this.userRepository.delete(id);
   }
 }
