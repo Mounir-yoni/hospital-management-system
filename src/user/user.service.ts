@@ -12,6 +12,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
   ) { }
 
   async create(createUserDto: CreateUserDto, manager?: EntityManager): Promise<User> {
@@ -29,10 +31,11 @@ export class UserService {
     }
 
     const user: User = userRepository.create({
-      ...userData,
+      name: userData.firstName,
+      last_name: userData.lastName,
+      email: userData.email,
+      password: userData.password,
       role: roleEntity,
-      isActive: true,
-      refreshToken: '',
       createdAt: new Date(),
       updatedAt: new Date()
     });

@@ -13,6 +13,6 @@ export class Department {
   createdAt: Date;
 
   // العلاقة: القسم الواحد يمكن أن يحتوي على عدة أطباء
-  @OneToMany(() => Doctor, (doctor) => doctor.department)
+  @OneToMany(() => Doctor, (doctor) => doctor.department_id)
   doctors: Doctor[];
 }

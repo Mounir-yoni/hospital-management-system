@@ -9,6 +9,5 @@ import { Doctor } from 'src/doctor/entities/doctor.entity';
   imports: [TypeOrmModule.forFeature([Department, Doctor])], // تأكد من إضافة Doctor هنا لتمكين العلاقات
   controllers: [DepartmentsController],
   providers: [DepartmentsService],
-  imports: [TypeOrmModule.forFeature([Department])],
 })
 export class DepartmentsModule { }
