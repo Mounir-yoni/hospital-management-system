@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { Role } from 'src/role/entities/role.entity';
 import { RoleName } from 'src/role/enums/Role.Name';
 
@@ -14,29 +14,34 @@ export class UserService {
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>
   ) { }
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser = await this.findByEmail(createUserDto.email);
+  async create(createUserDto: CreateUserDto, manager?: EntityManager): Promise<User> {
+    const userRepository = manager ? manager.getRepository(User) : this.userRepository;
+    const roleRepository = manager ? manager.getRepository(Role) : this.roleRepository;
+
+    const existingUser = await userRepository.findOne({ where: { email: createUserDto.email } });
     if (existingUser) {
       throw new Error('User already exists');
     }
     const { role, ...userData } = createUserDto;
-    const roleEntity = await this.roleRepository.findOne({ where: { name: role as RoleName } });
+    const roleEntity = await roleRepository.findOne({ where: { name: role as RoleName } });
     if (!roleEntity) {
       throw new Error(`Role ${role} not found`);
     }
 
-    const user: User = this.userRepository.create({
+    const user: User = userRepository.create({
       ...userData,
       role: roleEntity,
+      isActive: true,
+      refreshToken: '',
       createdAt: new Date(),
       updatedAt: new Date()
     });
-    const savedUser = await this.userRepository.save(user);
+    const savedUser = await userRepository.save(user);
     return savedUser;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { email } });
+    return await this.userRepository.findOne({ where: { email }, relations: ['role'] });
   }
 
   findAll() {
@@ -48,6 +53,10 @@ export class UserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error('User not found');
+    }
     const { role, ...rest } = updateUserDto;
     const updateData: any = { ...rest };
     if (role) {
@@ -61,7 +70,8 @@ export class UserService {
     return this.userRepository.update(id, updateData);
   }
 
-  remove(id: number) {
-    return this.userRepository.delete(id);
+  remove(id: number, manager?: EntityManager) {
+    const userRepository = manager ? manager.getRepository(User) : this.userRepository;
+    return userRepository.delete(id);
   }
 }

@@ -9,7 +9,10 @@ export class User {
     id: number;
 
     @Column()
-    name: string;
+    firstName: string;
+
+    @Column()
+    lastName: string;
 
     @Column()
     email: string;
@@ -23,6 +26,12 @@ export class User {
 
     @OneToOne(() => Doctor, (doctor) => doctor.user)
     doctor: Doctor;
+
+    @Column()
+    isActive: boolean;
+
+    @Column()
+    refreshToken: string;
 
     @Column()
     createdAt: Date;

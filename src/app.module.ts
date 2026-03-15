@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -7,9 +8,10 @@ import { RoleModule } from './role/role.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { AuthModule } from './auth/auth.module';
 import * as dotenv from 'dotenv';
+import { DepartmentsModule } from './departments/departments.module';
 dotenv.config({ path: 'config.env' });
 @Module({
-  imports: [TypeOrmModule.forRoot({
+  imports: [ConfigModule.forRoot(), TypeOrmModule.forRoot({
     type: 'postgres',
     host: 'localhost',
     port: 5432,
@@ -18,7 +20,7 @@ dotenv.config({ path: 'config.env' });
     database: process.env.DB_NAME,
     autoLoadEntities: true,
     synchronize: true, // ⚠️ فقط في التطوير
-  }), UserModule, RoleModule, DoctorModule, AuthModule,],
+  }), UserModule, RoleModule, DoctorModule, AuthModule, DepartmentsModule],
   controllers: [AppController],
   providers: [AppService],
 })

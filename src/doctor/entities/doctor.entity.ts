@@ -1,13 +1,10 @@
 import { User } from "src/user/entities/user.entity";
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('doctors')
 export class Doctor {
     @PrimaryGeneratedColumn()
     id: number;
-
-    @Column()
-    name: string;
 
     @Column()
     specialization: string;
@@ -19,12 +16,15 @@ export class Doctor {
     @Column()
     department_id: number;
 
+
     @OneToOne(() => User, (user) => user.doctor)
+    @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column()
+
+    @Column({ default: new Date() })
     createdAt: Date;
 
-    @Column()
+    @Column({ default: new Date() })
     updatedAt: Date;
 }
